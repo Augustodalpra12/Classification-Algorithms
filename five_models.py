@@ -11,6 +11,7 @@ from sklearn.neural_network import MLPClassifier # mlp
 from sklearn.naive_bayes import BernoulliNB # nb
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
+import scipy.stats as stats # kruskal-wallis
 
 # Abrindo o arquivo para escrita
 with open('results.txt', 'w') as txt:
@@ -347,6 +348,28 @@ with open('results.txt', 'w') as txt:
 # Criando o DataFrame e salvando no arquivo CSV
 df = pd.DataFrame(accuracy_list, columns=['KNN', 'SVM', 'DT', 'MLP','NB'])
 df.to_csv('results.csv', index=False)
+df_means = df.mean()
 
-df = pd.DataFrame(accuracy_list_mult, columns=['Regra da Soma', 'Voto Majoritário', 'Borda Count'])
-df.to_csv('results_multi.csv', index=False)
+df_mult = pd.DataFrame(accuracy_list_mult, columns=['Regra da Soma', 'Voto Majoritário', 'Borda Count'])
+df_mult.to_csv('results_multi.csv', index=False)
+
+knn_mean = df_means['KNN']
+svm_mean = df_means['SVM']
+dt_mean = df_means['DT']
+mlp_mean = df_means['MLP']
+nb_mean = df_means['NB']
+
+
+# Aplicando o teste de Kruskal-Wallis
+stat, p_value = stats.kruskal([knn_mean], [svm_mean], [dt_mean], [mlp_mean], [nb_mean])
+
+# Exibindo o resultado
+print(f'Estatística de Kruskal-Wallis: {stat}')
+print(f'Valor-p: {p_value}')
+
+# Interpretando o resultado
+alpha = 0.05
+if p_value < alpha:
+    print("Há diferença estatisticamente significativa entre os classificadores.")
+else:
+    print("Não há diferença estatisticamente significativa entre os classificadores.")
