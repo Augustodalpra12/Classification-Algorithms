@@ -12,6 +12,7 @@ from sklearn.naive_bayes import BernoulliNB # nb
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 import scipy.stats as stats # kruskal-wallis
+from scipy.stats import mannwhitneyu # Mann-Whitney 
 
 # Abrindo o arquivo para escrita
 with open('results.txt', 'w') as txt:
@@ -353,6 +354,8 @@ df_means = df.mean()
 df_mult = pd.DataFrame(accuracy_list_mult, columns=['Regra da Soma', 'Voto Majoritário', 'Borda Count'])
 df_mult.to_csv('results_multi.csv', index=False)
 
+#========================= ESTATISTICA CLASSIFIDORES "MONO" ==============================
+
 knn_mean = df_means['KNN']
 svm_mean = df_means['SVM']
 dt_mean = df_means['DT']
@@ -373,3 +376,69 @@ if p_value < alpha:
     print("Há diferença estatisticamente significativa entre os classificadores.")
 else:
     print("Não há diferença estatisticamente significativa entre os classificadores.")
+
+# Obtenha os nomes das colunas (classificadores)
+classifiers = df.columns
+
+# Comparando de 2 em 2 com o teste de Mann-Whitney
+comparisons = {}
+for i in range(len(classifiers)):
+    for j in range(i + 1, len(classifiers)):
+        clf1, clf2 = classifiers[i], classifiers[j]
+        comparisons[f'{clf1} vs {clf2}'] = mannwhitneyu(df[clf1], df[clf2])
+
+# Exibindo os resultados com interpretação
+significance_level = 0.05
+
+for comparison, result in comparisons.items():
+    print(f'{comparison}: U={result.statistic}, p-value={result.pvalue}')
+    if result.pvalue < significance_level:
+        print(f"Resultado: Existe uma diferença estatisticamente significativa entre {comparison}.")
+    else:
+        print(f"Resultado: Não há diferença estatisticamente significativa entre {comparison}.")
+
+#=============================== ESTATISTICA MULTI CLASSIFICADORES ==============================
+
+# Supondo que accuracy_list_mult já foi criado e contém as acurácias dos multi-classificadores
+# Criando o DataFrame e salvando no arquivo CSV
+df_mult = pd.DataFrame(accuracy_list_mult, columns=['Regra da Soma', 'Voto Majoritário', 'Borda Count'])
+df_mult.to_csv('results_multi.csv', index=False)
+df_mult_means = df_mult.mean()
+
+# Extraindo as médias para cada classificador
+soma_mean = df_mult_means['Regra da Soma']
+voto_mean = df_mult_means['Voto Majoritário']
+borda_mean = df_mult_means['Borda Count']
+
+# Aplicando o teste de Kruskal-Wallis para os multi-classificadores
+stat, p_value = stats.kruskal(df_mult['Regra da Soma'], df_mult['Voto Majoritário'], df_mult['Borda Count'])
+
+# Exibindo o resultado de Kruskal-Wallis
+print(f'Estatística de Kruskal-Wallis: {stat}')
+print(f'Valor-p: {p_value}')
+
+# Interpretando o resultado
+alpha = 0.05
+if p_value < alpha:
+    print("Há diferença estatisticamente significativa entre os multi-classificadores.")
+else:
+    print("Não há diferença estatisticamente significativa entre os multi-classificadores.")
+
+# Obtenha os nomes das colunas (multi-classificadores)
+mult_classifiers = df_mult.columns
+
+# Comparando de 2 em 2 com o teste de Mann-Whitney
+mult_comparisons = {}
+for i in range(len(mult_classifiers)):
+    for j in range(i + 1, len(mult_classifiers)):
+        clf1, clf2 = mult_classifiers[i], mult_classifiers[j]
+        mult_comparisons[f'{clf1} vs {clf2}'] = mannwhitneyu(df_mult[clf1], df_mult[clf2])
+
+# Exibindo os resultados com interpretação
+for comparison, result in mult_comparisons.items():
+    print(f'{comparison}: U={result.statistic}, p-value={result.pvalue}')
+    if result.pvalue < alpha:
+        print(f"Resultado: Existe uma diferença estatisticamente significativa entre {comparison}.")
+    else:
+        print(f"Resultado: Não há diferença estatisticamente significativa entre {comparison}.")
+
