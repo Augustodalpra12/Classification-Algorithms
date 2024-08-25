@@ -183,7 +183,7 @@ with open('results.txt', 'w') as txt:
         #====================Start of MLP Classifier================
         print("\nMLP", file=txt)
         param_grid = {
-            'hidden_layer_sizes': [(50,), (100,), (50, 50), (100, 50)],
+            'hidden_layer_sizes': [(5, 5), (5, 5, 5), (8, 8), (8, 8, 8), (12, 12), (12, 12, 12), (20, 20), (20, 20, 20), (50, 50), (50, 50, 50)],
             'activation': ['identity', 'logistic', 'tanh', 'relu'],
             'max_iter': [1000, 1500, 2000],
             'learning_rate': ['constant', 'invscaling', 'adaptive']
